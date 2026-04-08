@@ -2,9 +2,9 @@
 <odoo>
     <data noupdate="1">
         <!-- Dependency constraint: we rely on documents app -->
-        <record id="document_folder_vendor_compliance" model="documents.folder">
+        <record id="document_folder_vendor_compliance" model="documents.document">
             <field name="name">Vendor Compliance</field>
-            <field name="description">All validated documents from vendors are automatically routed here.</field>
+            <field name="type">folder</field>
         </record>
     </data>
 </odoo>
