@@ -25,7 +25,7 @@ class VendorValidationDocument(models.Model):
     def create(self, vals_list):
         # Auto-tag or assign folder if needed based on the Documents app workspace
         # We will retrieve the xml_id for our vendor compliance folder
-        folder = self.env.ref('vendor_validation.document_folder_vendor_compliance', raise_if_not_found=False)
+        folder = self.env.ref('cgc_vendor_validation.document_folder_vendor_compliance', raise_if_not_found=False)
         for vals in vals_list:
             if 'document_id' in vals and folder:
                 doc = self.env['documents.document'].browse(vals['document_id'])

@@ -14,7 +14,7 @@
         - Integration with Documents app for centralized compliance management
         - Constraints on Purchase Orders for unvalidated vendors
     """,
-    'author': 'CGC / Antigravity',
+    'author': 'Rjay Lopez',
     'depends': ['base', 'purchase', 'documents'],
     'data': [
         'security/ir.model.access.csv',
