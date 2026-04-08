@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_vendor_requirement_type_tree" model="ir.ui.view">
+        <field name="name">vendor.requirement.type.tree</field>
+        <field name="model">vendor.requirement.type</field>
+        <field name="arch" type="xml">
+            <tree editable="bottom">
+                <field name="name"/>
+                <field name="active" widget="boolean_toggle"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_vendor_requirement_type" model="ir.actions.act_window">
+        <field name="name">Vendor Requirements</field>
+        <field name="res_model">vendor.requirement.type</field>
+        <field name="view_mode">tree</field>
+    </record>
+
+    <menuitem id="menu_vendor_requirement_type"
+              name="Vendor Requirements"
+              parent="purchase.menu_purchase_config"
+              action="action_vendor_requirement_type"
+              sequence="50"/>
+</odoo>
