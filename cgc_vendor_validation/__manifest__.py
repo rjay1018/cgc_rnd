@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Internal Vendor Validation Management',
-    'version': '1.0',
+    'version': '19.0.1.0.1',
     'category': 'Purchases',
     'summary': 'Manage and track vendor compliance documentation',
     'description': """
