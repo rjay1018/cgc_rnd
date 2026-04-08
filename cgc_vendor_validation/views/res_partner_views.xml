@@ -6,7 +6,7 @@
         <field name="inherit_id" ref="base.view_partner_form"/>
         <field name="arch" type="xml">
             <xpath expr="//notebook" position="inside">
-                <page string="Validation &amp; Compliance" name="vendor_validation" attrs="{'invisible': [('supplier_rank', '=', 0), ('is_company', '=', False)]}">
+                <page string="Validation &amp; Compliance" name="vendor_validation" invisible="supplier_rank == 0 or not is_company">
                     <group>
                         <group>
                             <field name="validation_progress" widget="progressbar"/>
