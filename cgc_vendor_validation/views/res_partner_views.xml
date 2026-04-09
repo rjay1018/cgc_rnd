@@ -7,7 +7,7 @@
         <field name="arch" type="xml">
             <xpath expr="//notebook" position="inside">
                 <page string="Validation &amp; Compliance" name="vendor_validation" invisible="supplier_rank == 0 or not is_company">
-                    <field name="check_missing_requirements" invisible="1"/>
+                    <field name="trigger_auto_load_requirements" invisible="1"/>
                     <group>
                         <group>
                             <field name="validation_progress" widget="progressbar"/>
