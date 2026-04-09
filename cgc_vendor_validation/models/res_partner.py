@@ -24,8 +24,8 @@ class ResPartner(models.Model):
     def _compute_auto_load_requirements(self):
         for partner in self:
             partner.trigger_auto_load_requirements = True
-            # Only auto-load if evaluating a real record, not a new unsaved form
-            if not isinstance(partner.id, models.NewId) and partner.id:
+            # Only auto-load if evaluating a real saved record
+            if isinstance(partner.id, int):
                 # Fetch all active global requirements
                 active_reqs = self.env['vendor.requirement.type'].search([('active', '=', True)])
                 # Find requirements we already have lines for (any status)
