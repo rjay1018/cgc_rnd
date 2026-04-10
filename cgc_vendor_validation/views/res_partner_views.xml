@@ -50,7 +50,7 @@
     <record id="view_partner_list_inherit_vendor_validation" model="ir.ui.view">
         <field name="name">res.partner.list.inherit.vendor.validation</field>
         <field name="model">res.partner</field>
-        <field name="inherit_id" ref="base.res_partner_view_list"/>
+        <field name="inherit_id" ref="base.view_partner_tree"/>
         <field name="arch" type="xml">
             <xpath expr="//list" position="inside">
                 <field name="validation_status" widget="badge" optional="show"
