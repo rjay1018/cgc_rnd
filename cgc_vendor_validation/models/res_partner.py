@@ -16,7 +16,7 @@ class ResPartner(models.Model):
         ('in_progress', 'In-Progress'),
         ('validated', 'Validated'),
     ], string='Validation Status', compute='_compute_validation_status',
-       search='_search_validation_status', store=False)
+       search='_search_validation_status', store=False, compute_sudo=True)
 
     @api.depends('validation_progress')
     def _compute_validation_status(self):
@@ -82,7 +82,7 @@ class ResPartner(models.Model):
 
     # A non-stored field purely used to trigger side-effects when the form view loads
     trigger_auto_load_requirements = fields.Boolean(
-        compute='_compute_auto_load_requirements', store=False
+        compute='_compute_auto_load_requirements', store=False, compute_sudo=True
     )
 
     @api.depends('name')
