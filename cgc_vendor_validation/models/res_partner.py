@@ -12,8 +12,29 @@ class ResPartner(models.Model):
         string='Validation Progress (%)', compute='_compute_validation_progress', store=True
     )
     is_vendor_validated = fields.Boolean(
-        string='Is Validated?', compute='_compute_validation_progress', store=True
+        string='Is Validated?', compute='_compute_validation_progress', search='_search_is_vendor_validated', store=False
     )
+    
+    def _search_is_vendor_validated(self, operator, value):
+        total_reqs = self.env['vendor.requirement.type'].search_count([('active', '=', True)])
+        if total_reqs == 0:
+            if (operator == '=' and value) or (operator == '!=' and not value):
+                return []
+            return [('id', '=', -1)]
+            
+        self.env.cr.execute("""
+            SELECT partner_id 
+            FROM vendor_validation_document 
+            WHERE status = 'uploaded'
+            GROUP BY partner_id 
+            HAVING count(DISTINCT requirement_type_id) >= %s
+        """, (total_reqs,))
+        validated_partner_ids = [r[0] for r in self.env.cr.fetchall()]
+        
+        if (operator == '=' and value) or (operator == '!=' and not value):
+            return [('id', 'in', validated_partner_ids)] if validated_partner_ids else [('id', '=', -1)]
+        else:
+            return [('id', 'not in', validated_partner_ids)] if validated_partner_ids else []
     
     # A non-stored field purely used to trigger side-effects when the form view loads
     trigger_auto_load_requirements = fields.Boolean(
