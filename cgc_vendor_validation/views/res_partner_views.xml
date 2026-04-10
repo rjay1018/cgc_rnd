@@ -28,4 +28,16 @@
             </xpath>
         </field>
     </record>
+
+    <!-- Predefined Filter for Search Views as referenced in Odoo Docs -->
+    <record id="view_res_partner_filter_inherit_vendor_validation" model="ir.ui.view">
+        <field name="name">res.partner.select.inherit.vendor.validation</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_res_partner_filter"/>
+        <field name="arch" type="xml">
+            <xpath expr="//filter[@name='supplier']" position="after">
+                <filter string="Validated Vendors" name="filter_validated_vendors" domain="[('is_vendor_validated', '=', True)]"/>
+            </xpath>
+        </field>
+    </record>
 </odoo>
