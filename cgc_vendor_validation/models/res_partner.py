@@ -12,8 +12,13 @@ class ResPartner(models.Model):
         string='Validation Progress (%)', compute='_compute_validation_progress', store=True
     )
     is_vendor_validated = fields.Boolean(
-        string='Is Validated?', compute='_compute_validation_progress', search='_search_is_vendor_validated', store=False
+        string='Is Validated?', compute='_compute_is_vendor_validated', search='_search_is_vendor_validated', store=False
     )
+
+    @api.depends('validation_progress')
+    def _compute_is_vendor_validated(self):
+        for partner in self:
+            partner.is_vendor_validated = partner.validation_progress >= 100.0
     
     def _search_is_vendor_validated(self, operator, value):
         total_reqs = self.env['vendor.requirement.type'].search_count([('active', '=', True)])
@@ -72,7 +77,6 @@ class ResPartner(models.Model):
         for partner in self:
             if total_requirements_count == 0:
                 partner.validation_progress = 100.0
-                partner.is_vendor_validated = True
                 continue
             
             valid_docs = partner.validation_document_ids.filtered(lambda d: d.status == 'uploaded')
@@ -82,4 +86,3 @@ class ResPartner(models.Model):
             progress = (len(active_unique_reqs) / float(total_requirements_count)) * 100.0
             
             partner.validation_progress = progress
-            partner.is_vendor_validated = progress >= 100.0
