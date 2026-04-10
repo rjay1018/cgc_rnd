@@ -11,56 +11,88 @@ class ResPartner(models.Model):
     validation_progress = fields.Float(
         string='Validation Progress (%)', compute='_compute_validation_progress', store=True
     )
-    is_vendor_validated = fields.Boolean(
-        string='Is Validated?', compute='_compute_is_vendor_validated', search='_search_is_vendor_validated', store=False
-    )
+    validation_status = fields.Selection([
+        ('not_valid', 'Not Valid'),
+        ('in_progress', 'In-Progress'),
+        ('validated', 'Validated'),
+    ], string='Validation Status', compute='_compute_validation_status',
+       search='_search_validation_status', store=False)
 
     @api.depends('validation_progress')
-    def _compute_is_vendor_validated(self):
+    def _compute_validation_status(self):
         for partner in self:
-            partner.is_vendor_validated = partner.validation_progress >= 100.0
-    
-    def _search_is_vendor_validated(self, operator, value):
+            if partner.validation_progress >= 100.0:
+                partner.validation_status = 'validated'
+            elif partner.validation_progress > 0:
+                partner.validation_status = 'in_progress'
+            else:
+                partner.validation_status = 'not_valid'
+
+    def _search_validation_status(self, operator, value):
         total_reqs = self.env['vendor.requirement.type'].search_count([('active', '=', True)])
+
         if total_reqs == 0:
-            if (operator == '=' and value) or (operator == '!=' and not value):
-                return []
-            return [('id', '=', -1)]
-            
+            # If no requirements exist, everyone is 'validated'
+            if operator == '=' and value == 'validated':
+                return []  # match all
+            return [('id', '=', -1)]  # match none
+
+        # Get all partners with at least one upload
         self.env.cr.execute("""
-            SELECT partner_id 
-            FROM vendor_validation_document 
+            SELECT partner_id, count(DISTINCT requirement_type_id) as uploaded_count
+            FROM vendor_validation_document
             WHERE status = 'uploaded'
-            GROUP BY partner_id 
-            HAVING count(DISTINCT requirement_type_id) >= %s
-        """, (total_reqs,))
-        validated_partner_ids = [r[0] for r in self.env.cr.fetchall()]
-        
-        if (operator == '=' and value) or (operator == '!=' and not value):
-            return [('id', 'in', validated_partner_ids)] if validated_partner_ids else [('id', '=', -1)]
-        else:
-            return [('id', 'not in', validated_partner_ids)] if validated_partner_ids else []
-    
+            GROUP BY partner_id
+        """)
+        rows = self.env.cr.fetchall()
+        uploaded_map = {r[0]: r[1] for r in rows}
+
+        validated_ids = [pid for pid, cnt in uploaded_map.items() if cnt >= total_reqs]
+        in_progress_ids = [pid for pid, cnt in uploaded_map.items() if cnt < total_reqs]
+
+        def match(val):
+            if val == 'validated':
+                return [('id', 'in', validated_ids)] if validated_ids else [('id', '=', -1)]
+            elif val == 'in_progress':
+                return [('id', 'in', in_progress_ids)] if in_progress_ids else [('id', '=', -1)]
+            else:  # not_valid — partners with zero uploads
+                all_with_uploads = list(uploaded_map.keys())
+                return [('id', 'not in', all_with_uploads)] if all_with_uploads else []
+
+        if operator == '=':
+            return match(value)
+        elif operator == '!=':
+            # negate: return partners NOT in the matched set
+            matched = match(value)
+            if matched == []:
+                return [('id', '=', -1)]
+            if matched == [('id', '=', -1)]:
+                return []
+            # swap in/not in
+            domain = matched[0]
+            if domain[1] == 'in':
+                return [('id', 'not in', domain[2])]
+            return [('id', 'in', domain[2])]
+        elif operator == 'in' and isinstance(value, list):
+            import functools
+            from odoo.osv import expression
+            domains = [match(v) for v in value]
+            return expression.OR(domains)
+        return []
+
     # A non-stored field purely used to trigger side-effects when the form view loads
     trigger_auto_load_requirements = fields.Boolean(
         compute='_compute_auto_load_requirements', store=False
     )
 
-    @api.depends('name')  # triggers when viewed due to XML inclusion
+    @api.depends('name')
     def _compute_auto_load_requirements(self):
         for partner in self:
             partner.trigger_auto_load_requirements = True
-            # Only auto-load if evaluating a real saved record
             if isinstance(partner.id, int):
-                # Fetch all active global requirements
                 active_reqs = self.env['vendor.requirement.type'].search([('active', '=', True)])
-                # Find requirements we already have lines for (any status)
                 existing_req_ids = partner.validation_document_ids.mapped('requirement_type_id.id')
-                
-                # Check for missing
                 missing_reqs = active_reqs.filtered(lambda r: r.id not in existing_req_ids)
-                
-                # Create shell rows to allow inline file uploads
                 if missing_reqs:
                     self.env['vendor.validation.document'].sudo().create([
                         {
@@ -73,16 +105,15 @@ class ResPartner(models.Model):
     @api.depends('validation_document_ids', 'validation_document_ids.status', 'validation_document_ids.requirement_type_id')
     def _compute_validation_progress(self):
         total_requirements_count = self.env['vendor.requirement.type'].search_count([('active', '=', True)])
-        
+
         for partner in self:
             if total_requirements_count == 0:
                 partner.validation_progress = 100.0
                 continue
-            
+
             valid_docs = partner.validation_document_ids.filtered(lambda d: d.status == 'uploaded')
             unique_reqs = valid_docs.mapped('requirement_type_id')
             active_unique_reqs = unique_reqs.filtered(lambda r: r.active)
 
             progress = (len(active_unique_reqs) / float(total_requirements_count)) * 100.0
-            
             partner.validation_progress = progress

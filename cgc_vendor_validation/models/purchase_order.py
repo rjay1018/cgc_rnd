@@ -8,7 +8,7 @@ class PurchaseOrder(models.Model):
     @api.constrains('partner_id')
     def _check_vendor_validated(self):
         for order in self:
-            if order.partner_id and not order.partner_id.is_vendor_validated:
+            if order.partner_id and order.partner_id.validation_status != 'validated':
                 raise ValidationError(_(
                     "Partner '%s' is not a validated vendor. Please select a validated vendor for purchase orders."
                 ) % order.partner_id.name)
