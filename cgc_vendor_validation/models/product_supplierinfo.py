@@ -7,5 +7,5 @@ class ProductSupplierinfo(models.Model):
 
     partner_id = fields.Many2one(
         'res.partner',
-        domain="['|', ('company_id', '=', False), ('company_id', '=', company_id), ('validation_status', '=', 'validated')]"
+        domain="['|', ('company_id', '=', False), ('company_id', '=', company_id), ('validation_progress', '=', 100)]"
     )

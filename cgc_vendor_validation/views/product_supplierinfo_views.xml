@@ -6,7 +6,7 @@
         <field name="inherit_id" ref="product.product_supplierinfo_form_view"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='partner_id']" position="attributes">
-                <attribute name="domain">[('validation_status', '=', 'validated')]</attribute>
+                <attribute name="domain">[('validation_progress', '=', 100)]</attribute>
             </xpath>
         </field>
     </record>
