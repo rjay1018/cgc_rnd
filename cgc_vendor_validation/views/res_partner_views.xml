@@ -39,9 +39,9 @@
         <field name="inherit_id" ref="base.view_res_partner_filter"/>
         <field name="arch" type="xml">
             <xpath expr="//filter[@name='supplier']" position="after">
-                <filter string="Validated Vendors" name="filter_validated_vendors" domain="[('validation_status', '=', 'validated')]"/>
-                <filter string="In-Progress Vendors" name="filter_inprogress_vendors" domain="[('validation_status', '=', 'in_progress')]"/>
-                <filter string="Not Valid Vendors" name="filter_notvalid_vendors" domain="[('validation_status', '=', 'not_valid')]"/>
+                <filter string="Validated Vendors" name="filter_validated_vendors" domain="[('validation_progress', '=', 100), ('supplier_rank', '!=', False)]"/>
+                <filter string="In-Progress Vendors" name="filter_inprogress_vendors" domain="[('validation_progress', '&gt;', 0), ('validation_progress', '&lt;', 100)]"/>
+                <filter string="Not Valid Vendors" name="filter_notvalid_vendors" domain="[('validation_progress', '=', 0)]"/>
             </xpath>
         </field>
     </record>
