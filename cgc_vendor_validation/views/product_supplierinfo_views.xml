@@ -4,9 +4,48 @@
         <field name="name">product.supplierinfo.form.view.inherit.validation</field>
         <field name="model">product.supplierinfo</field>
         <field name="inherit_id" ref="product.product_supplierinfo_form_view"/>
+        <field name="priority" eval="50"/>
         <field name="arch" type="xml">
+            <xpath expr="//field[@name='partner_id']" position="replace">
+                <field name="partner_id" 
+                    domain="[('validation_progress', '=', 100), ('supplier_rank', '!=', False), ('company_id', '=', False)]" 
+                    context="{'res_partner_search_mode': 'supplier', 'default_is_company': True, 'default_supplier_rank': 1}"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="product_supplierinfo_tree_view_inherit_validation" model="ir.ui.view">
+        <field name="name">product.supplierinfo.tree.view.inherit.validation</field>
+        <field name="model">product.supplierinfo</field>
+        <field name="inherit_id" ref="product.product_supplierinfo_tree_view"/>
+        <field name="priority" eval="1005"/>
+        <field name="arch" type="xml">
+            <xpath expr="//list" position="attributes">
+                <attribute name="editable">bottom</attribute>
+            </xpath>
+            <xpath expr="//list" position="inside">
+                <field name="company_id" column_invisible="True"/>
+            </xpath>
+            <xpath expr="//field[@name='company_id']" position="attributes">
+                <attribute name="readonly">0</attribute>
+                <attribute name="optional">hide</attribute>
+            </xpath>
             <xpath expr="//field[@name='partner_id']" position="attributes">
-                <attribute name="domain">[('validation_status', '=', 'validated')]</attribute>
+                <attribute name="readonly">0</attribute>
+                <attribute name="context" remove="1"/>
+                <attribute name="domain">[('validation_progress', '=', 100), ('supplier_rank', '!=', False)]</attribute>
+                <attribute name="context">{'res_partner_search_mode': 'supplier'}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='product_id']" position="attributes">
+                <attribute name="readonly">0</attribute>
+                <attribute name="options">{'no_create': True, 'no_open': True}</attribute>
+                <attribute name="domain">[('product_tmpl_id', '=', parent.id)]</attribute>
+            </xpath>
+            <xpath expr="//field[@name='delay']" position="attributes">
+                <attribute name="optional">show</attribute>
+            </xpath>
+            <xpath expr="//field[@name='min_qty']" position="attributes">
+                <attribute name="optional">show</attribute>
             </xpath>
         </field>
     </record>
